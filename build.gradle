@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'org.graalvm.buildtools.native' version '0.10.+'
 }
 
 repositories {
@@ -9,7 +10,7 @@ repositories {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -20,5 +21,25 @@ application {
 jar {
     manifest {
         attributes 'Main-Class': application.mainClass.get()
+    }
+}
+
+graalvmNative  {
+    binaries {
+        main {
+            imageName = 'jnetcat'
+            mainClass = application.mainClass
+            buildArgs.add("-O2")
+        }
+        test {
+            buildArgs.add("-O0")
+        }
+        all {
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(21))
+                vendor.set(JvmVendorSpec.GRAAL_VM)
+            })
+           buildArgs.add("--verbose")
+        }
     }
 }
